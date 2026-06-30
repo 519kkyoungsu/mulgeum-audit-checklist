@@ -546,6 +546,7 @@ const DATA = [
         <td>2026.08.24.~09.02. (10일)</td><td>교무실·학년교무실·행정실</td><td>내부감사관</td></tr>
       <tr><td><span class="phase-badge phase-3">3차 외부점검</span></td>
         <td>2026.09.30.~10.02. (3일)</td><td>도서관(3층)</td><td>외부감사관+도감사관</td></tr>
+    </table>
   </div>
   <div class="sched-card" style="margin-top:8px">
     <h3>👥 감사반 구성</h3>
@@ -1350,7 +1351,7 @@ const DATA = [
 
 /* ============ RENDER ============ */
 const STORAGE_KEY = "mulgeum_AuditChecklist:v1";
-const QNA_LOCK_PW = "9910"; // Q&A 탭 열람 비밀번호 (물금고 선생님 전용) — 필요 시 변경하세요
+const QNA_LOCK_PW = "1701"; // Q&A 탭 열람 비밀번호 (물금고 선생님 전용) — 필요 시 변경하세요
 let qnaUnlocked = false; // 새로고침 시 false로 초기화 (메모리 변수 — 세션 동안만 유지)
 let checked = new Set();
 let activeTab = DATA[0].id;
@@ -1554,10 +1555,9 @@ load();
 
 /* ===== Q&A 모듈 ===== */
 (function(){
-  // ⚠️ 아래 URL을 물금고용 Google Apps Script 웹앱 배포 URL로 교체하세요.
-  // (제공해주신 스프레드시트: https://docs.google.com/spreadsheets/d/1WRHNnohdFRtq5ktp87HuM8kaRVEWNBxNpQzNYFmJRWE/edit
-  //  이 시트에 Apps Script 코드를 붙여넣고 "웹 앱"으로 배포하면 발급되는 실행 URL을 아래에 넣어주세요.)
-  const QNA_API_URL = "https://script.google.com/macros/s/AKfycbw3PJpOAKwDedkuPeTmssa8NqnpQEv2gd7wYKJtzRY1eMOTcPQX7sjlmBUkCeqSb8Xl/exec";
+  // 연결 대상 스프레드시트: https://docs.google.com/spreadsheets/d/1WRHNnohdFRtq5ktp87HuM8kaRVEWNBxNpQzNYFmJRWE/edit
+  // 물금고 Apps Script 웹앱 배포 URL
+  const QNA_API_URL = "https://script.google.com/macros/s/AKfycbwSQ9nJNI_ZAClofYjyJ9WZFxCQSxZlPwVLC0PhF7BXHJO3lp2yit6KxjnN8_8DST4e/exec";
 
   const CATEGORIES = ["전체","제도·일정","교무·학사","행정·회계","복무·인사","확인서·서식","자료실·시스템","기타"];
   let qnaItems = [];
