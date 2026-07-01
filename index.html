@@ -320,6 +320,24 @@
   .disclaimer-foot{background:#FFF8E1;border:1.5px solid #F0C844;border-radius:10px;
     padding:11px 15px;margin-top:18px;font-size:12px;color:#6B4E00;line-height:1.65;}
   .disclaimer-foot b{color:#7A5800;}
+
+  /* ===== 탭 메뉴 접기/펼치기 ===== */
+  .tabbar-bar{max-width:1000px;margin:0 auto;padding:6px 16px 0;}
+  .tabbar-current{width:100%;display:flex;align-items:center;gap:9px;
+    font-family:inherit;cursor:pointer;background:var(--paper);border:1.5px solid var(--line);
+    border-radius:10px;padding:9px 12px;transition:all .12s;}
+  .tabbar-current:hover{border-color:var(--terra);}
+  .tabbar-current .tc-icon{font-size:17px;line-height:1;}
+  .tabbar-current .tc-label{flex:1;text-align:left;font-size:13px;font-weight:800;color:var(--ink);}
+  .tabbar-current .tc-badge{font-family:Consolas,monospace;font-size:10.5px;font-weight:700;
+    background:var(--forest-soft);color:var(--forest);padding:2px 7px;border-radius:99px;}
+  .tabbar-current .tc-badge.full{background:var(--forest);color:#fff;}
+  .tabbar-current .tc-chevron{font-size:11px;color:var(--muted);transition:transform .18s;flex:none;}
+  .tabbar-bar.open .tabbar-current .tc-chevron{transform:rotate(180deg);}
+  .tabbar-bar.open .tabbar-current{border-color:var(--terra);}
+  .tabbar-collapse{display:grid;grid-template-rows:0fr;transition:grid-template-rows .22s ease;}
+  .tabbar-bar.open .tabbar-collapse{grid-template-rows:1fr;}
+  .tabbar-collapse-inner{overflow:hidden;}
 </style>
 </head>
 <body>
@@ -327,7 +345,7 @@
   <div class="head-inner">
     <div class="school-badge">🏫 물금고등학교 전용</div>
     <h1>2026 자율형 종합감사 체크리스트</h1>
-    <div class="sub">탭을 눌러 분야별로 점검 · 완료 항목 클릭 시 체크 · 진행 상황 자동 저장</div>
+    <div class="sub">아래 메뉴 바를 눌러 분야별 목록을 펼치고 접을 수 있어요 · 완료 항목 클릭 시 체크 · 진행 상황 자동 저장</div>
     <div class="school-info">
       <span class="info-chip">📍 양산시 신주1길 20 (물금읍)</span>
       <span class="info-chip">교장 <b>이영문</b> · 교감 <b>이은영</b> · 행정실장 <b>홍경례</b></span>
@@ -356,7 +374,19 @@
       <div class="pct" id="pctText">0% <small>(0/0)</small></div>
     </div>
   </div>
-  <nav class="tabbar" id="tabbar"></nav>
+  <div class="tabbar-bar" id="tabbarBar">
+    <button class="tabbar-current" id="tabbarCurrentBtn" type="button">
+      <span class="tc-icon" id="tcIcon">🏫</span>
+      <span class="tc-label" id="tcLabel">물금고 현황</span>
+      <span class="tc-badge" id="tcBadge">0/14</span>
+      <span class="tc-chevron">▾</span>
+    </button>
+    <div class="tabbar-collapse" id="tabbarCollapse">
+      <div class="tabbar-collapse-inner">
+        <nav class="tabbar" id="tabbar"></nav>
+      </div>
+    </div>
+  </div>
 </header>
 
 <div class="wrap" id="wrap"></div>
@@ -1355,7 +1385,13 @@ const QNA_LOCK_PW = "1701"; // Q&A 탭 열람 비밀번호 (물금고 선생님 
 let qnaUnlocked = false; // 새로고침 시 false로 초기화 (메모리 변수 — 세션 동안만 유지)
 let checked = new Set();
 let activeTab = DATA[0].id;
+let tabbarOpen = true; // 메뉴 바 펼침 상태
 
+const tabbarBar = document.getElementById('tabbarBar');
+const tabbarCurrentBtn = document.getElementById('tabbarCurrentBtn');
+const tcIcon = document.getElementById('tcIcon');
+const tcLabel = document.getElementById('tcLabel');
+const tcBadge = document.getElementById('tcBadge');
 const tabbar = document.getElementById('tabbar');
 const wrap = document.getElementById('wrap');
 const barFill = document.getElementById('barFill');
@@ -1365,6 +1401,28 @@ function itemId(tabId,si,ii){return tabId+"-"+si+"-"+ii;}
 function totalCount(){return DATA.filter(t=>!t.qna&&!t.notionCases).reduce((s,t)=>s+t.sections.reduce((a,sec)=>a+sec.items.length,0),0);}
 function tabDone(tab){let d=0,t=0;tab.sections.forEach((sec,si)=>sec.items.forEach((_,ii)=>{t++;if(checked.has(itemId(tab.id,si,ii)))d++;}));return[d,t];}
 function checkSVG(){return '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>';}
+
+function setTabbarOpen(open){
+  tabbarOpen = open;
+  tabbarBar.classList.toggle('open', open);
+}
+
+function updateTabbarCurrent(){
+  const tab = DATA.find(t=>t.id===activeTab);
+  if(!tab) return;
+  tcIcon.textContent = tab.icon;
+  tcLabel.textContent = tab.label;
+  if(tab.qna || tab.notionCases){
+    tcBadge.style.display = "none";
+  }else{
+    const [d,t] = tabDone(tab);
+    tcBadge.style.display = "";
+    tcBadge.textContent = d+'/'+t;
+    tcBadge.classList.toggle('full', d===t);
+  }
+}
+
+tabbarCurrentBtn.addEventListener('click', ()=>setTabbarOpen(!tabbarOpen));
 
 function buildTabs(){
   tabbar.innerHTML="";
@@ -1491,6 +1549,7 @@ function refreshCounts(){
       if(sc){sc.textContent=sd+' / '+sec.items.length;sc.classList.toggle('full',sd===sec.items.length);}
     });
   });
+  updateTabbarCurrent();
 }
 
 function toggle(id,li){
@@ -1503,6 +1562,8 @@ function switchTab(tabId){
   activeTab=tabId;
   tabbar.querySelectorAll('.tab').forEach(b=>b.classList.toggle('active',b.dataset.tab===tabId));
   wrap.querySelectorAll('.panel').forEach(p=>p.classList.toggle('active',p.dataset.panel===tabId));
+  updateTabbarCurrent();
+  setTabbarOpen(false); // 탭 선택 시 메뉴 바를 접어 본문이 잘 보이도록 함
   window.scrollTo({top:0,behavior:'smooth'});
 }
 
@@ -1529,6 +1590,7 @@ async function load(){
 buildTabs();
 buildPanels();
 refreshCounts();
+setTabbarOpen(true); // 첫 진입 시에는 메뉴를 펼쳐서 보여줌
 load();
 
 /* ===== 자료실 미리보기 토글 ===== */
